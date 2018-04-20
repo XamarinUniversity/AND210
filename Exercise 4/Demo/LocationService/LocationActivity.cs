@@ -32,7 +32,7 @@ namespace LocationService
 
         void ServiceConnectionChanged(object sender, bool isConnected)
         {
-            if (lsConnection.Serice == null)
+            if (lsConnection.Service == null)
                 return;
 
             if (isConnected)
@@ -57,7 +57,7 @@ namespace LocationService
         protected override void OnPause()
         {
             UnbindService(lsConnection);
-            
+
             base.OnPause();
         }
 
