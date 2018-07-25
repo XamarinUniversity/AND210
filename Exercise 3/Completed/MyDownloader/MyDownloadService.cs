@@ -86,7 +86,7 @@ namespace MyDownloader
 			{
 				const string notificationChannelId = "DOWNLOAD_CHANNEL";
 				var notificationManager = (NotificationManager)GetSystemService(Context.NotificationService);
-				var notificationChannel = new NotificationChannel(notificationChannelId, "Downloads", NotificationImportance.Default);
+				var notificationChannel = new NotificationChannel(notificationChannelId, "Downloads", NotificationImportance.Low);
 				notificationManager.CreateNotificationChannel(notificationChannel);
 
 				return new Notification.Builder(this, notificationChannelId)
