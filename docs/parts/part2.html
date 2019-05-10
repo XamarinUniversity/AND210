@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Start a service</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Android Services</header>
+
+    <section id="main">
+
+        <h1 id="page-title"></h1>
+
+        <h2>Duration</h2>
+        <p>20 minutes</p>
+
+        <h2>Goals</h2>
+
+        <p>
+            The primary goal of this lab is to start a service from an Activity. 
+        </p>
+
+        <img src="res/images/ex2_complete.png" width="320" alt="" style='border:1px solid #999999'/></div>
+
+        <h2>Required assets</h2>
+        <p>
+            This lab is a continuation of the previous lab. You may use your existing solution or use the <b>Completed</b> solution in the <b>Exercise 1</b> folder.
+            The provided <strong>Exercise 2</strong> folder contains a subfolder named <strong>Completed</strong> with a solution you can use to check your work. 
+            Please make sure you have these folders before you begin.
+        </p>
+
+        <!-- Give them a challenge here, high-level steps of what we want them to do
+             so they can use this instead of the step-by-step (baby steps) included below -->
+        <h2>Challenge</h2>
+        <p>
+            You'll add mock download logic to an existing service and then start and stop the service.
+        </p>
+        <p>
+            <ol>
+                <li>Open the completed solution from the previous exercise and open <b>MainActivity.cs</b>.</li>
+                <li>Update the button <b>Click</b> event handlers to start and stop <b>MyDownloadService</b>.</li>
+                <li>Open <b>MyDownloadService.cs</b> and add a for-loop in <code>OnStartCommand</code> to simulate a long running task.</li>
+                <li>Update <code>OnStartCommand</code> so the "work" isn't performed on the UI thread.</li>
+                <li>Use intent extras to pass data to the service to control the number of iterations the for-loop performs.</li>
+                <li>Add cancellation to the Service so the asynchronous work is stopped when the service is stopped externally (from the Activity).</li>
+            </ol>
+        </p>
+
+
+        <!-- Steps -->
+        <h1>Steps</h1>
+
+        <h2>Start and Stop the service</h2>
+        <ol>
+            <li>Open the completed solution from the previous exercise and open <b>MainActivity.cs</b>.</li>
+            <li>In the Start button click event handler method <b>ButtonStartClick</b>, create an <code>Intent</code> to start <b>MyDownloadService</b> by setting the <b>Type</b> constructor argument to <code>typeof(MyDownloadService)</code>.</li>
+            <li>Start the service by calling <code>StartService</code> and passing in the intent.</li>
+            <li>In the Cancel button click event handler method <b>ButtonCancelClick</b>, create an <code>Intent</code> to stop <b>MyDownloadService</b>.</li>
+            <li>Stop the service by calling <code>StopService</code> and passing in the intent.</li> 
+            <li>Optionally run the application and try the buttons. You can observe the service lifecycle methods' execution in the output window.</li>
+            <p><a href="#" onclick="toggleCode(this,'StartStop');return false;" class="uiitem">Show Code</a>
+<div id="StartStop" style="display:none;">
+<pre class="prettyprint">
+void ButtonStartClick(object sender, System.EventArgs e)
+{
+    var intent = new Intent(this, typeof(MyDownloadService));
+    StartService(intent);
+}
+
+void ButtonCancelClick(object sender, System.EventArgs e)
+{
+    StopService(new Intent(this, typeof(MyDownloadService)));
+}</pre></div>
+        </ol>
+           
+        <h2>Perform work in the service</h2>
+        <p>We're going to add mock logic to our service to better simulate a long-running operation like a file download. 
+        <ol>
+            <li>Open <b>MyDownloadService.cs</b> and find the <b>OnStartCommand</b> method.</li>
+            <li>Display a <code>Toast</code> popup in <code>OnStartCommand</code> to indicate to the user when the service is performing work. 
+            To create a <code>Toast</code> call <code>Toast.Make</code>. To display the <code>Toast</code> call <code>Show</code> on the instance.</li>
+            <li>Add mock logic by:
+                <ul>
+                    <li>creating a <code>for</code> loop that iterates 15 times</li>
+                    <li>output the current progress as a percentage using either <code>Log.Debug</code> or <code>Debug.WriteLine</code></li>
+                    <li>use <code>Thread.Sleep</code> to pause after every iteration</li>
+                </ul>
+            <li>Run the application and start the service. Try pressing the buttons once the service has started. Try stopping the service. Does the Toast display?</li>
+            <p><a href="#" onclick="toggleCode(this,'for');return false;" class="uiitem">Show Code</a>
+<div id="for" style="display:none;">
+<pre class="prettyprint">
+public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+{
+   Log.Debug(tag, "OnStartCommand called");
+
+   Toast.MakeText(this, "Download Started", ToastLength.Short).Show();
+
+   int steps = 15;
+
+   for (int i = 0; i < steps; i++)
+   {
+       int percent = 100 * (i + 1) / steps;
+       var msg = String.Format("[{0}] download in progress: {1}% complete", startId, percent);
+       Log.Debug(tag, msg);
+
+       Thread.Sleep(500);
+   }
+
+   return StartCommandResult.RedeliverIntent;
+}</pre></div>
+        </ol>
+
+        <h2>Perform work asynchronously (don't block the UI thread)</h2>
+        <p>Services run in the same process as your activities and by default perform work on the process's UI thread. We'll update the code so service doesn't block the UI thread.
+        <ol>
+            <li>Queue the work performed by the <code>for</code> on a thread-pool thread using <code>Task.Run</code>.</li>
+            <li>We also want to stop the service when the work is complete, call <code>StopSelf</code> when the for-loop completes.</li>
+            <li>Run the application again and start the service. Try stopping the service. Observe the Toast. Does the work stop?</li>
+            <p><a href="#" onclick="toggleCode(this,'task');return false;" class="uiitem">Show Code</a>
+<div id="task" style="display:none;">
+<pre class="prettyprint">
+public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+{
+   ...
+
+   Task.Run(() =>
+   {
+      for (int i = 0; i < steps; i++)
+      {  ... 
+      }
+
+      StopSelf();
+   });
+   ...
+}</pre></div>
+        
+        </ol>
+
+    <h2>Pass data to the Service</h2>
+        <p>We'll pass an integer value for the for loop when starting the service. In a real download service you might pass a url or filename.</p>
+        <ol>
+            <li>Open <b>MainActivity.cs</b> and go to the <code>ButtonStartClick</code> method.</li>
+            <li>And an integer value of your choice to the intent by calling <code>PutExtra</code> and use "LoopCount" as the key.</li>
+<p><a href="#" onclick="toggleCode(this,'ButtonStartClick');return false;" class="uiitem">Show Code</a>
+<div id="ButtonStartClick" style="display:none;">
+<pre class="prettyprint">
+void ButtonStartClick(object sender, System.EventArgs e)
+{
+   var intent = new Intent(this, typeof(MyDownloadService));
+   intent.PutExtra("LoopCount", 7);
+
+   StartService(intent);
+}</pre></div>
+            <li>Open <b>MyDownloadService.cs</b> and go to <code>OnStartCommand</code>.</li>
+            <li>Extract the integer value from the intent by calling <code>GetIntExtra</code> and again using "LoopCount" as the key.</li>
+            <li>Use the value to control the number of iterations of the for-loop.</li>
+            <li>Run the application again and start the service. You won't block the UI thread, but try stopping the service this time. Does the work stop yet?</li>
+ <p><a href="#" onclick="toggleCode(this,'GetIntExtra');return false;" class="uiitem">Show Code</a>
+<div id="GetIntExtra" style="display:none;">
+<pre class="prettyprint">
+public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+{
+   ...
+   var steps = intent.GetIntExtra("LoopCount", 10);
+
+   Task.Run(() =>
+   {
+      for (int i = 0; i < steps; i++)
+      ...
+</pre></div>           
+        </ol>
+
+        <h2>Implement cancellation</h2>
+        <p>We stopped the service in the previous steps but we didn't stop the thread performing the work. We'll do that next.</p>
+        <ol>
+            <li>Add two <code>boolean</code> fields to track the state of the download: name them <b>isCancelled</b> and <b>isDownloaded</b>. We're going to use these within our thread-pool thread so we'll mark them as <code>volatile</code>.
+            Note: <code>volatile</code> prevents optimization so our fields can be used across multiple threads but does <b>not</b> ensure thread-safety.</li>
+            <li>If the service is stopped externally, <code>OnDestroy</code> will be called. Set <code>isCancelled</code> to <code>true</code> in <code>OnDestroy</code>.
+            <li>At the top of <code>OnStartCommand</code>, set both <code>isCancelled</code> and <code>isDownloaded</code> to <code>false</code>.</li>
+            <li>In the for-loop conditional statement, add a check if <code>isCancelled</code> is <code>false</code>.</li>
+            <li>We should only call <code>StopSelf</code> if the service hasn't been stopped externally. Ensure <code>isCancelled</code> is <code>false</code> before calling <code>StopSelf</code>.</li>
+            <li>Optionally, display a <code>Toast</code> in <code>OnDestroy</code> indicating if the download was successful. An example is shown below.</li>
+            <li>Run the application, start and cancel the download.</li>
+<p><a href="#" onclick="toggleCode(this,'isCancelled');return false;" class="uiitem">Show Code</a>
+<div id="isCancelled" style="display:none;">
+<pre class="prettyprint">
+public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+{
+   isDownloaded = false;
+   isCancelled = false;
+   ...
+
+   Task.Run(() =>
+   {
+      for (int i = 0; i < steps && isCancelled == false; i++)
+      { ... }
+
+      if (isCancelled == false)
+      {
+         isDownloaded = true;
+         StopSelf();
+      }
+   });
+   ...
+}
+
+public override void OnDestroy()
+{
+   isCancelled = true;
+
+   if (isDownloaded)
+       Toast.MakeText(this, "Download Complete", ToastLength.Long).Show();
+   else
+       Toast.MakeText(this, "Download Cancelled", ToastLength.Long).Show();
+   ...
+}</pre></div>
+        </ol>
+
+        <h2>Bonus - use a Broadcast Receiver</h2>
+        <p>If you have time and are familar with using broadcast receivers - use one to communicate with MainActivity.<br>
+        Add a progress bar to MainActivity and enable it only while the service is downloading.<br>
+        There's a project named <b>Bonus</b> in the <b>Exercise 2</b> folder with a completed version.</p>
+
+        <h1>Summary</h1>
+        <p>
+            In this exercise, you added logic to a service, started it from an application component, and stopped the service both internally and externally.
+        </p>
+        <div class="align-right">
+            <a href="../Start%20Here.html">Go Back</a>
+        </div>
+    </section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>
