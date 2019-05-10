@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Android Services</title>
+    <link rel="stylesheet" type="text/css" href="./parts/res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./parts/res/styles/prettify.css">
+    <link rel="stylesheet" type="text/css" href="./parts/res/styles/styles.css">
+</head>
+
+<body>
+    <!-- This will be filled in at runtime -->
+    <header role="course-title"></header>
+
+    <section id="main">
+
+        <h2>Before you begin</h2>
+        <p>
+        This is an Android class. To complete the coding exercises, you will need a Xamarin.Android development environment with either a simulator or a device to run the exercise on. Please see the <a href="https://university.xamarin.com/resources/win-setup">Windows setup</a> or <a href="https://university.xamarin.com/resources/mac-setup">macOS setup</a> pages if you need help installing the Xamarin development environment.
+        </p>
+
+        <h2>Overview</h2>
+        <p>
+            In this class you will learn how to perform long-running operations on Android using Services. Services can be used to ensure that your apps remain responsive and can complete important long-running operations even when your application's UI isn't visible.
+        </p>
+
+        <h2>Objectives</h2>
+        <ol>
+           <li>Create a Service</li>
+           <li>Start a Service</li>
+           <li>Elevate a service to foreground</li>
+           <li>Bind to a Service</li>
+        </ol>
+
+        <h2>Lecture</h2>
+        <p><a href="./parts/slides.pdf">AND210 - Android Services</a>.</p>
+
+        <h2>Exercises</h2>
+        <p>
+            Exercise materials are available from <a href="https://github.com/XamarinUniversity/AND210/">GitHub</a>. The code can be cloned through a desktop Git client or <a href="https://github.com/XamarinUniversity/AND210/archive/master.zip">downloaded directly</a> as a ZIP file.
+        </p>
+        <ol>
+            <li><div class="objective">Create a service</div>
+            <a href="./parts/part1.html">Exercise</a>
+            <br />
+            In this exercise we will create and declare a new service.
+            </li>
+
+            <li><div class="objective">Start a service</div>
+            <a href="./parts/part2.html">Exercise</a>
+            <br />
+            In this exercise we will add behavior to an existing service and start it from an Activity.
+            </li>
+
+            <li><div class="objective">Elevate a service to foreground</div>
+            <a href="./parts/part3.html">Exercise</a>
+            <br />
+            In this exercise we will create a notification and use it to elevate a service to foreground.
+            </li>
+
+            <li><div class="objective">Bind a service</div>
+            <a href="./parts/part4.html">Exercise</a>
+            <br />
+            In this exercise we will obtain a reference to a service by binding and use the reference to visualize data being obtained by the service.
+            </li>
+        </ol>
+
+        <!-- This section is for additional links and examples that are relevant to 
+            the material in this course -->
+        <h2>Additional resources</h2>
+ 
+        <div class="wslist">
+            <a target="_blank" href="https://developer.xamarin.com/guides/android/application_fundamentals/services/creating-a-service/">Creating a Service</a>
+            <a target="_blank" href="https://developer.xamarin.com/guides/android/application_fundamentals/services/foreground-services/">Foreground Services</a>
+            <a target="_blank" href="https://developer.android.com/reference/android/app/PendingIntent.html">PendingIntents</a>        
+            <a target="_blank" href="https://developer.android.com/guide/components/services.html">Android Services</a>
+            <a target="_blank" href="https://developer.android.com/guide/components/bound-services.html">Bound Services</a>
+        </div>
+
+    </section>
+
+    <script src="./parts/res/js/jquery.min.js"></script>
+    <script src="./parts/res/js/prettify.js"></script>
+    <script src="./parts/res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.<br><a target="_blank" href="http://university.xamarin.com">Visit Xamarin University for more classes and content</a></footer>
+</body>
+</html>

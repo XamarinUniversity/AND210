@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Bind to a Service</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Android Services</header>
+
+    <section id="main">
+
+        <h1 id="page-title"></h1>
+
+        <h2>Duration</h2>
+        <p>25 minutes</p>
+
+        <h2>Goals</h2>
+
+        <p>
+            The primary goal of this lab is to bind to an existing service allowing us to subscribe to an event defined on the service and visualize data in an Activity.
+        </p>
+
+        <img src="res/images/ex4_complete.png" width="320" alt=""  style='border:1px solid #999999'/></div>
+
+        <h2>Required assets</h2>
+        <p>
+            The provided <strong>Exercise 4</strong> folder contains a subfolder named <strong>Start</strong> that you'll use for this exercise. It also contains a folder named <strong>Completed</strong> with a solution you can use to check your work. 
+            Please make sure you have these folders before you begin.
+            <br>
+            You'll also need a device capable of receiving location data or an emulator able to simulate location data.
+            <br>
+            <b>Note</b> some Android emulators require you to <i>change</i> the simulated position before they will report the location. Keep this in mind when testing.
+        </p>
+
+        <!-- Give them a challenge here, high-level steps of what we want them to do
+             so they can use this instead of the step-by-step (baby steps) included below -->
+        <h2>Challenge</h2>
+        <p>
+             <ol>
+                <li>Open the start solution and examine the provided code, specifically look at <b>LocationService.cs</b>.</li>
+                <li>Create a <code>Binder</code> derived class for the service.</li>
+                <li>Return a binder instance from the LocationService's <code>OnBind</code> method.</li>
+                <li>Create a service connection that exposes a connection changed event and the service as a property.</li>
+                <li>Instantiate the service connection in <code>LocationActivity</code> and bind the service.</li>
+                <li>Use the existing UI to visualize the current location data provided by the service.</li>
+            </ol>
+        </p>
+
+
+        <!-- Steps -->
+        <h1>Steps</h1>
+
+        <h2>Explore the start solution</h2>
+        <ol>
+            <li>Open the start solution in the <b>Exercise 4</b> folder.</li>
+            <li>Inspect <b>LocationService.cs</b>. This service will track the device location when started.</li>
+            <li>Open <b>LocationActivity.cs</b> and its XML layout UI definition <b>Location.axml</b>. 
+            This activity will be used to visualize the device position provided by the service.</li>
+            <li>Open <b>MainActivity.cs</b>. This activity has a single button that launches <b>LocationActivity</b>.</li>
+            <li>Optionally run the application and inspect the UI. (You won't see any location information at this point.)</li>
+        </ol>
+
+        <h2>Create a Binder</h2>
+        <p>Before we can bind a service, we need a <code>Binder</code> derived class to deliver the service to the service connection.</p>
+        <ol>
+            <li>Create a new class named <b>LocationServiceBinder</b>.</li>
+            <li>Inherit from <code>Binder</code>.</li>
+            <li>Add a public property named <b>Service</b> of type <code>LocationService</code> and make the setter private.</li>
+            <li>Add a constructor that accepts a <code>LocationService</code> and assigns it to the <code>Service</code> property.</li>
+<p><a href="#" onclick="toggleCode(this,'LocationServiceBinder');return false;" class="uiitem">Show Code</a>
+<div id="LocationServiceBinder" style="display:none;">
+<pre class="prettyprint">
+public class LocationServiceBinder : Binder
+{
+   public LocationService Service { get; private set; }
+
+   public LocationServiceBinder(LocationService service)
+   {
+      this.Service = service;
+   }
+}</pre></div>
+        </ol>
+
+        <h2>Implement OnBind</h2>
+        <ol>
+            <li>Open <b>LocationService.cs</b> and find the <code>OnBind</code> method.</li>
+            <li>Delete the existing code and return a new instance of <code>LocationServiceBinder</code> passing <code>this</code> into the constructor.</li>
+<pre class="prettyprint">
+public override IBinder OnBind(Intent intent)
+{
+   return new LocationServiceBinder(this);
+}</pre></div>
+        </ol>
+
+        <h2>Create a service connection</h2>
+        <p>The a service connection instance will receive the binder when the service is bound. It will also be used to notify subscribers when the service is bound and unbound.</p>
+        <ol>
+            <li>Create a new class named <b>LocationServiceConnection</b>.</li></li>
+            <li>Derive from <code>Java.Lang.Object</code>. 
+            This will simplify the implementation of <code>IServiceConnection</code> which inherits from <code>IJavaObject</code> and <code>IDisposable</code>; both are implemented by <code>Java.Lang.Object</code>.</li>
+            <li>Implement <code>IServiceConnection</code> on <code>LocationServiceConnection</code>. This requires two methods: <code>OnServiceConnected</code> and <code>OnServiceDisconnected</code>.</li>
+            <li>Create a public <code>event</code> <code>EventHandler&lt;bool&gt;</code> named <b>ServiceConnectionChanged.</b></li>
+            <li>Call <code>ServiceConnectionChanged</code> from both service connection methods, passing <code>true</code> in <code>OnServiceConnected</code> and <false> in <code>OnServiceDisconnected</code>.
+          <p><a href="#" onclick="toggleCode(this,'LocationServiceConnection');return false;" class="uiitem">Show Code</a>
+<div id="LocationServiceConnection" style="display:none;">
+<pre class="prettyprint">
+class LocationServiceConnection : Java.Lang.Object, IServiceConnection
+{
+   public event EventHandler&lt;bool&gt; ServiceConnectionChanged;
+
+   public void OnServiceConnected(ComponentName name, IBinder service)
+   {
+      ServiceConnectionChanged?.Invoke(this, true);
+   }
+
+   public void OnServiceDisconnected(ComponentName name)
+   {
+      ServiceConnectionChanged?.Invoke(this, false);
+   }
+}</pre></div>
+        </ol>
+          
+        <h2>Expose the service from the service connection</h2>
+        <ol>
+            <li>Add a public <code>LocationService</code> property named <b>Service</b> with a public getter and private setter.</li>
+            <li>In <code>OnServiceConnection</code> cast the passed in <code>IBinder</code> to the concrete <code>LocationServiceBinder</code>.</li>
+            <li>Access the service using the <code>LocationServiceBinder</code>'s <code>Service</code> property and assign it to the class level <code>Service</code> property you just defined.</li>
+            <li>In <code>OnServiceDisconnected</code>, set <code>Service</code> to <code>null</code>.</li>
+<p><a href="#" onclick="toggleCode(this,'OnServiceConnected');return false;" class="uiitem">Show Code</a>
+<div id="OnServiceConnected" style="display:none;">
+<pre class="prettyprint">
+class LocationServiceConnection ...
+{
+   ...
+   public LocationService Service { get; private set; }
+
+   public void OnServiceConnected(ComponentName name, IBinder service)
+   {
+      LocationServiceBinder lsBinder = service as LocationServiceBinder;
+
+      if (lsBinder == null)
+         return;
+
+      Service = lsBinder.Service;
+      ServiceConnectionChanged?.Invoke(this, true);
+   }
+
+   public void OnServiceDisconnected(ComponentName name)
+   {
+      ServiceConnectionChanged?.Invoke(this, false);
+      Service = null;
+   }
+}</pre></div>
+        </ol>
+
+        <h2>Bind the service</h2>
+        <ol>
+            <li>Open <b>LocationActivity.cs</b>.</li>
+            <li>Create a <code>LocationServiceConnection</code> field named <b>lsConnection</b>.</li>
+            <li>In <code>OnCreate</code>, instantiate <code>lsConnection</code>.</li>
+            <li>In <code>OnResume</code>, create an <code>Intent</code> to start <code>LocationService</code>.</li>
+            <li>Call <code>BindService</code>, passing in the intent, <code>lsConnection</code>, and set the <b>flags</b> parameter to <code>Bind.AutoCreate</code>.</li>
+            <li>In <code>OnPause</code>, call <code>OnUnbindService</code> passing in <code>lsConnection</code>.</li>
+<p><a href="#" onclick="toggleCode(this,'BindService');return false;" class="uiitem">Show Code</a>
+<div id="BindService" style="display:none;">
+<pre class="prettyprint">
+protected override void OnResume()
+{
+   var intent = new Intent(this, typeof(LocationService));
+   BindService(intent, lsConnection, Bind.AutoCreate);
+
+   base.OnResume();
+}
+
+protected override void OnPause()
+{
+   UnbindService(lsConnection);
+    
+   base.OnPause();
+}</pre></div>  
+        </ol>
+
+        <h2>Monitor connection changes</h2>
+        <p>With the service bound, we can monitor connection changes by subscribing to the <code>ServiceConnectionChanged</code> event we created on the service connection.</p>
+        <ol>
+            <li>In <code>OnCreate</code>, subscribe to the <code>ServiceConnectionChanged</code> event on <code>lsConnection</code> with a method named <b>ServiceConnectionChanged</b>.</li>
+            <li>In the event handler method, create an <code>if/else</code> statement for the <code>isConnected</code> argument.</li>
+            <li>When <code>isConnected</code> is true, subscribe to the <code>LocationChanged</code> event on <code>lsConnection.Service</code> using a named method named <b>LocationChanged</b> (which we will create later).</li>
+            <li>When <code>isConnected</code> is false, unsubscribe to <code>LocationChanged</code>.</li>
+            <li>We can also visualize the service's start time when we connect. When <code>isConnected</code> is true, display the service's <code>StartTime</code> property using the <b>startText</b> <code>TextView</code>.</li>
+<p><a href="#" onclick="toggleCode(this,'isConnected');return false;" class="uiitem">Show Code</a>
+<div id="isConnected" style="display:none;">
+<pre class="prettyprint">
+protected override void OnCreate(Bundle savedInstanceState)
+{
+   ...
+   lsConnection = new LocationServiceConnection();
+   lsConnection.ServiceConnectionChanged += ServiceConnectionChanged;
+}
+
+void ServiceConnectionChanged(object sender, bool isConnected)
+{
+   if (isConnected)
+   {
+      lsConnection.Service.LocationChanged += LocationChanged;
+      startText.Text = lsConnection.Service.StartTime.ToLongTimeString();
+   }
+   else
+   {
+      lsConnection.Service.LocationChanged -= LocationChanged;
+   }
+}</pre></div>              
+        </ol>
+
+        <h2>Visualize location data</h2>
+        <p>Our final step is to visual the location data provided by the service. LocationActivity already has <code>TextView</code> controls defined.<br>
+        The <code>LocationChanged</code> method receives a parameter of type <code>LocationChangedEventArgs</code> named <b>e</b> by default. 
+            <b>e</b> has a property of type <code>Location</code> which contains the location data.</p>
+        <ol>
+            <li>Assign <code>e.Location</code> to a local variable named <b>location</b>.</li>
+            <li>Use the properties on <code>location</code> to assign the <code>Text</code> properties on each of:
+                <ul>
+                    <li><code>latText</code> (latitude)</li>
+                    <li><code>longText</code> (longitude)</li>
+                    <li><code>altText</code> (altitude)</li>
+                    <li><code>speedText</code> (speed)</li>
+                </ul>
+             </li>
+             <li>Start the application and navigate to the location screen.</li>
+<p><a href="#" onclick="toggleCode(this,'LocationChanged');return false;" class="uiitem">Show Code</a>
+<div id="LocationChanged" style="display:none;">
+<pre class="prettyprint">
+void LocationChanged(object sender, Android.Locations.LocationChangedEventArgs e)
+{
+   var location = e.Location;
+
+   latText.Text =   location.Latitude.ToString();
+   lngText.Text =   location.Longitude.ToString();
+   altText.Text =   location.Altitude.ToString();
+   speedText.Text = location.Speed.ToString();
+}</pre></div> 
+        </ol>
+
+
+        <h1>Summary</h1>
+        <p>
+            In this exercise, you created a binder amd service connection  to bind to a service. You then visualized data provided by the service.
+        </p>
+        <div class="align-right">
+            <a href="../Start%20Here.html">Go Back</a>
+        </div>
+    </section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Elevate a service to foreground</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Android Services</header>
+
+    <section id="main">
+
+        <h1 id="page-title"></h1>
+
+        <h2>Duration</h2>
+        <p>20 minutes</p>
+
+        <h2>Goals</h2>
+
+        <p>
+            The primary goal of this lab is to elevate a service to foreground to increase resiliency. As a requirement of a foreground service, we will also display and update a notification.
+        </p>
+
+        <img src="res/images/ex3_complete.png" width="320" alt=""  style='border:1px solid #999999'/></div>
+
+        <h2>Required assets</h2>
+        <p>
+            This lab is a continuation of the previous lab. You may use your existing solution or use the <b>Completed</b> solution in the <b>Exercise 2</b> folder.
+            The provided <strong>Exercise 3</strong> folder contains a subfolder named <strong>Completed</strong> with a solution you can use to check your work. 
+            Please make sure you have these folders before you begin.
+        </p>
+
+        <!-- Give them a challenge here, high-level steps of what we want them to do
+             so they can use this instead of the step-by-step (baby steps) included below -->
+        <h2>Challenge</h2>
+        <p>
+            You'll elevate a service to foreground. This requires you to display a notification. You'll also update the notification to indicate progress and respond to taps on the displayed notification.
+        </p>
+        <p>
+            <ol>
+                <li>Open the completed solution from the previous exercise and open <b>MyDownloadService.cs</b>.</li>
+                <li>Create a helper factory method that accepts string content and a pending intent, and returns a notification.</li>
+                <li>In <code>OnStartCommand</code>, call <code>StartForeground</code> using the helper method and the pending intent.</li>
+                <li>in <code>OnStartCommand</code>, update the notification in each iteration of the for loop and display the current progress.</li>
+                <li>Add a <code>PendingIntent</code> field and initialize it in <code>OnCreate</code> to launch <code>MainActivity</code> using the <code>GetActivity</code> factory method. 
+                Update the notifcation factory method to add the pending intent.</li>
+                <li>Run the application, start the download service, and click the notification to return to the app.</li>
+            </ol>
+        </p>
+
+        <!-- Steps -->
+        <h1>Steps</h1>
+
+        <h2>Create a Notification</h2>
+        <p>We'll need to create a notification to elevate the service to foreground. We also create new notifications when updating so we'll create a helper notification factory method.</p>
+        <ol>
+            <li>Open the completed solution from the previous exercise and open <b>MyDownloadService.cs</b>.</li>
+            <li>Create a new method named <b>GetNotification</b> that returns a <code>Notification</code> and accepts a <code>string</code> parameter named <b>content</b>.</li>
+            <li>Instantiate a new <code>Notification.Builder</code>. <b>Note:</b> Because of changes in Android Oreo (API level 26), you will have to use two different constructors, depending on the version of Android you are running on your device or emulator.</li>
+            <li>Use the fluent API to customize the notification builder:
+                <ul>
+                    <li>On Android Oreo and newer, call <code>CreateNotificationChannel()</code> on the <code>NotificationManager</code> instance to create a category for the notification. <code>NotificationManager</code> can be accessed as a system service using <code>(NotificationManager)GetSystemService(Context.NotificationService)</code>.</li>
+                    <li>Call <code>SetContentTitle</code> on the <code>Notification</code> instance to set the title - this call returns a new/updated <code>Notification</code> instance.</li>
+                    <li>Call <code>SetContentText</code> on the instance, pass in the <code>string</code> <b>content</b> argument.</li>
+                    <li>Call <code>SetSmallIcon</code> on the instance to set the icon, pass in <code>Resource.Drawable.icon</code>.</li>
+                    
+                </ul>
+            </li>
+            <li>Finally, call <code>Build</code> on the notification builder to create a <code>Notification</code>.</li>
+            <li>Return the notification.</li>
+<p><a href="#" onclick="toggleCode(this,'GetNotification');return false;" class="uiitem">Show Code</a>
+<div id="GetNotification" style="display:none;">
+<pre class="prettyprint">
+    Notification GetNotification(string content)
+    {
+        // Beginning with API level 26 (Oreo) all notifications must be assigned to a channel (aka: category), otherwise they won't be shown.
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        {
+            const string notificationChannelId = "DOWNLOAD_CHANNEL";
+            var notificationManager = (NotificationManager)GetSystemService(Context.NotificationService);
+            var notificationChannel = new NotificationChannel(notificationChannelId, "Downloads", NotificationImportance.Low);
+            notificationManager.CreateNotificationChannel(notificationChannel);
+
+            return new Notification.Builder(this, notificationChannelId)
+            .SetContentTitle(tag)
+            .SetContentText(content)
+            .SetSmallIcon(Resource.Drawable.icon)
+            .Build();
+        }
+        else
+        {
+            // Running on a device older than Oreo.
+            return new Notification.Builder(this)
+            .SetContentTitle(tag)
+            .SetContentText(content)
+            .SetSmallIcon(Resource.Drawable.icon)
+            .Build();
+        }
+    }</pre></div>
+        </ol>
+
+        <h2>Elevate the service to foreground</h2>
+        <ol>
+            <li>Define a <code>const</code> <code>int</code> field named NotificationId and set it to any non-zero value.</li>
+<pre class="prettyprint">
+class MyDownloadService : Service
+{
+   const int NotificationID = 10000;
+   ...
+}</pre>
+            <li>In <code>OnStartCommand</code>, use the <code>GetNotification</code> helper method to create a <code>Notification</code>, passing in "Download started" as the content.</li>
+            <li>Call <code>StartForeground</code> passing in the notification id and the notification.</li>
+            <li>Run the application, start the service and observe the notification. Try clicking on the notification.</li>
+<p><a href="#" onclick="toggleCode(this,'StartForeground');return false;" class="uiitem">Show Code</a>
+<div id="StartForeground" style="display:none;">
+<pre class="prettyprint">
+public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+{
+   StartForeground(NotificationID, GetNotification("Download started"));
+   ...
+}</pre></div>
+        </ol>
+
+        <h2>Update the notification</h2>
+        <p>We'll create another helper method that can be used to update the notification. This requires using the NotificationManager.</p>
+        <ol>
+            <li>Copy and paste the code for the <code>UpdateNotification</code> method.</li>
+            <pre class="prettyprint">
+void UpdateNotification(string content)
+{
+   var notification = GetNotification(content);
+
+   NotificationManager notificationManager = (NotificationManager)GetSystemService(Context.NotificationService);
+   notificationManager.Notify(NotificationID, notification);
+}</pre>
+            <li>Inspect the code: Notice we're again passing in content as a string. Internally the method uses the <code>NotificationManager</code> to replace the existing notification using the same notification id.</li>
+            
+            <li>In <code>OnStartCommand</code>, find the for-loop; update the notification using <code>UpdateNotification</code> on every iteration, passing in the current progress.</li>
+            <li>Run the application, start the service and observe the notification.</li>
+<p><a href="#" onclick="toggleCode(this,'for');return false;" class="uiitem">Show Code</a>
+<div id="for" style="display:none;">
+<pre class="prettyprint">
+for (int i = 0; i < steps && isCancelled == false; i++)
+{
+    int percent = 100 * (i + 1) / steps;
+    var msg = String.Format("[{0}] download in progress: {1}% complete", startId, percent);
+    Log.Debug(tag, msg);
+    UpdateNotification(msg);
+
+    Thread.Sleep(500);
+}</pre></div>
+        </ol>
+
+        <h2>Respond to taps on the notification</h2>
+        <p>To add behavior to a notification we use a pending intent which encapsulates an intent that defines the behavior. In this case, to launch MainActivity.</p>
+        <ol>
+            <li>Create a <code>PendingIntent</code> field named <b>pendingIntent</b>.</li>
+            <li>In <code>OnCreate</code>, create an <code>Intent</code> to launch <b>MainActivity</b> - set the <b>Type</b> argument in the constructor to <code>typeof(MainActivity)</code></b> 
+            <li>Use <code>PendingIntent.GetActivity</code> to instantiate the field; pass <b>this</b> for the <b>context</b> parameter, <b>0</b> for <b>requestCode</b>, the <code>Intent</code> for <b>intent</b> and <b>0</b> for <b>flags</b>.</li>
+        <p><a href="#" onclick="toggleCode(this,'PendingIntent');return false;" class="uiitem">Show Code</a>
+<div id="PendingIntent" style="display:none;">
+<pre class="prettyprint">
+PendingIntent pendingIntent;
+
+public override void OnCreate()
+{
+    ...
+    pendingIntent = PendingIntent.GetActivity(this, 0, new Intent(this, typeof(MainActivity)), 0);
+}</pre></div>
+            <li>In <code>GetNotification</code>, add an additional fluent call to assign the pending intent:<br>
+                Call <code>SetContentIntent</code> on the instance passing in <b>pendingIntent</b>. This sets the behavior of the notification when tapped to open <b>MainActivity</b>.</li>
+                <li>Run the application, start the service and tap on the notification.</li>
+        <p><a href="#" onclick="toggleCode(this,'Pending');return false;" class="uiitem">Show Code</a>
+<div id="Pending" style="display:none;">
+<pre class="prettyprint">
+Notification GetNotification(string content, PendingIntent pendingIntent)
+        {
+            return new Notification.Builder(this)
+                    ...
+                    .SetContentIntent(pendingIntent).Build();
+        }</pre></div>
+        </ol>
+
+        <h1>Summary</h1>
+        <p>
+            In this exercise, you elevated a service to foreground, updated the notification and added behavior.
+        </p>
+        <div class="align-right">
+            <a href="../Start%20Here.html">Go Back</a>
+        </div>
+    </section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>

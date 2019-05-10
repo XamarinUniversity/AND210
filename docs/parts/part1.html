@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Create a service</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Android Services</header>
+
+    <section id="main">
+
+        <h1 id="page-title"></h1>
+
+        <h2>Duration</h2>
+        <p>10 minutes</p>
+
+        <h2>Goals</h2>
+
+        <p>
+            The primary goal of this lab is to create and declare an Android service. In later exercises, we'll use it to peform long-running operations.
+        </p>
+
+        <img src="res/images/ex1_complete.png" width="640" alt=""  style='border:1px solid #999999'/></div>
+
+        <h2>Required assets</h2>
+        <p>
+            The provided <strong>Exercise 1</strong> folder contains a subfolder named <strong>Start</strong> that you'll use for this exercise. It also contains a folder named <strong>Completed</strong> with a solution you can use to check your work. 
+            Please make sure you have these folders before you begin.
+        </p>
+
+        <h2>Challenge</h2>
+        <p>
+            You'll create a mock service to perform downloads that will be used in later exercises.
+        </p>
+        <p>
+            <ol>
+                <li>Open the <b>Start</b> solution.</li>
+                <li>Create a new class named <code>MyDownloadService</code> service that derives from <code>Service.</code></li>
+                <li>Override <code>OnBind</code>, <code>OnStartCommand</code>, <code>OnCreate</code> and <code>OnDestroy</code>.</li>
+                <li>Add the <b>[Service]</b> attribute.</li>
+                <li>Build the project and inspect the generated <b>AndroidManifest.xml</b> in the <b>obj -> Debug -> android</b> folder.</li>
+            </ol>
+        </p>
+
+
+        <!-- Steps -->
+        <h1>Steps</h1>
+
+        <h2>Crate a Service derived class</h2>
+        <ol>
+            <li>Open the <b>Start</b> solution in the <b>Exercise 1</b> folder.</li>
+            <li>Add a new class named <code>MyDownloadService</code> that inherits from <code>Service</code>.</li>
+            <li>Override the required <code>OnBind</code> method.</li>
+            <p><a href="#" onclick="toggleCode(this,'Service');return false;" class="uiitem">Show Code</a>
+<div id="Service" style="display:none;">
+<pre class="prettyprint">
+class MyDownloadService : Service 
+{
+   public override IBinder OnBind(Intent intent)
+   {
+      throw new NotImplementedException();
+   }
+}</pre></div>
+        </ol>
+
+        <h2>Override service lifecycle methods</h2>
+        <ol>
+            <li>Override <code>OnStartCommand</code>.</li>
+            <li>Remove the default code and return a valid argument for <code>StartCommandResult</code>. How should a download service behave when stopped by the OS?</li>
+            <li>Override <code>OnCreate</code> and <code>OnDestroy</code>.</li>
+            <li>For all four overriden lifecycle methods (including <code>OnBind</code>) add either <code>Debug.WriteLine</code> or <code>Log.Debug</code> statements to indicate execution in the IDE's output window.</li>
+<p><a href="#" onclick="toggleCode(this,'lifecycle');return false;" class="uiitem">Show Code</a>
+<div id="lifecycle" style="display:none;">
+<pre class="prettyprint">
+class MyDownloadService : Service 
+{
+    const string tag = "MyDownloadService";
+
+    public override void OnCreate()
+    {
+        base.OnCreate();
+        Log.Debug(tag, "Service created");
+    }
+
+    public override IBinder OnBind(Intent intent)
+    {
+       Log.Debug(tag, "OnBind called");
+       throw new NotImplementedException();
+    }
+
+    public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+    {
+       Log.Debug(tag, "OnStartCommand called");
+       return StartCommandResult.RedeliverIntent;
+    }
+
+    public override void OnDestroy()
+    {
+       Log.Debug(tag, "Service destroyed");
+    }
+}</pre></div>
+        </ol>
+
+        <h2>Declare the service</h2>
+        <ol>
+            <li>Add the Service attribute above the class definition.</li>
+            <li>Set the service <code>Label</code> within the attribute; the example code uses <b>MyDownloadService</b>.</li>
+            <li>Set the service <code>Icon</code> to <code>@drawable/Icon</code>.</li>
+<p><a href="#" onclick="toggleCode(this,'attribute');return false;" class="uiitem">Show Code</a>
+<div id="attribute" style="display:none;">
+<pre class="prettyprint">
+[Service (Label = "MyDownloadService", Icon = "@drawable/Icon") ]
+class MyDownloadService : Service</pre></div>
+            <li>Compile the project.
+            <li>Inspect the <b>AndroidManifest.xml</b> in the <b>Properties</b> folder. Notice the service is not defined.</li>
+            <li>Now open either <b>Explorer</b> on Windows or <b>Finder</b> on macOS and navigate to the root of your solution.</li>
+            <li>Navigate to <b>MyDownloader -> obj -> Debug -> android</b> and examine the generated <b>AndroidManifest.xml</b> using any text editor and find the service definition.</li>
+        </ol>
+
+        <h1>Summary</h1>
+        <p>
+            In this exercise, you created a class that derives from <code>Service</code> and declared the service using the service attribute. We'll finish and start the service in the next exercise.
+        </p>
+        <div class="align-right">
+            <a href="../Start%20Here.html">Go Back</a>
+        </div>
+    </section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>
